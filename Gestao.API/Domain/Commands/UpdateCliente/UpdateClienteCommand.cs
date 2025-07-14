@@ -1,15 +1,13 @@
 using MediatR;
+using System.Text.Json.Serialization;
 
 namespace Domain.Commands.UpdateCliente
 {
-    public class UpdateClienteCommand(
-        string id,
-        string nome,
-        string telefone
-    ) : IRequest<UpdateClienteCommandResponse>
+    public class UpdateClienteCommand : IRequest<UpdateClienteCommandResponse>
     {
-        public string Id { get; } = id;
-        public string Nome { get; } = nome;
-        public string Telefone { get; } = telefone;
+        [JsonIgnore]
+        public string Id { get; set; }
+        public string Nome { get; set; }
+        public string Telefone { get; set; }
     }
 }

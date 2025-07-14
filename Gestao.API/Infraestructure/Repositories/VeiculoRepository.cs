@@ -20,12 +20,12 @@ namespace Infraestructure.Repositories
             return await _veiculos.Find(_ => true).ToListAsync();
         }
 
-        public async Task<Veiculo?> GetByIdAsync(string id)
+        public async Task<Veiculo> GetByIdAsync(string id)
         {
             return await _veiculos.Find(v => v.Id == id).FirstOrDefaultAsync();
         }
 
-        public async Task<Veiculo?> GetByPlacaAsync(string placa)
+        public async Task<Veiculo> GetByPlacaAsync(string placa)
         {
             return await _veiculos.Find(v => v.Placa == placa).FirstOrDefaultAsync();
         }

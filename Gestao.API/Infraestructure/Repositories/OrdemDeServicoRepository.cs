@@ -20,7 +20,7 @@ namespace Infraestructure.Repositories
             return await _ordens.Find(_ => true).ToListAsync();
         }
 
-        public async Task<OrdemDeServico?> GetByIdAsync(string id)
+        public async Task<OrdemDeServico> GetByIdAsync(string id)
         {
             return await _ordens.Find(o => o.Id == id).FirstOrDefaultAsync();
         }

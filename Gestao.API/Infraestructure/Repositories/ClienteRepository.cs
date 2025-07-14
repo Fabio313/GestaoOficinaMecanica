@@ -20,7 +20,7 @@ namespace Infraestructure.Repositories
             return await _clientes.Find(_ => true).ToListAsync();
         }
 
-        public async Task<Cliente?> GetByIdAsync(string id)
+        public async Task<Cliente> GetByIdAsync(string id)
         {
             return await _clientes.Find(c => c.Id == id).FirstOrDefaultAsync();
         }

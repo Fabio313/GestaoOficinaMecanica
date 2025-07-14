@@ -23,8 +23,7 @@ namespace API.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult<UpdateOrdemDeServicoCommandResponse>> Update(string id, [FromBody] UpdateOrdemDeServicoCommand command)
         {
-            if (id != command.Id)
-                return BadRequest("Id mismatch.");
+            command.Id = id;
 
             var result = await _mediator.Send(command);
             return Ok(result);

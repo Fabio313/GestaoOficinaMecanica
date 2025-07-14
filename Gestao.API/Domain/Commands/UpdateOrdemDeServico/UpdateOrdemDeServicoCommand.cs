@@ -1,32 +1,22 @@
 using MediatR;
 using Domain.Enum;
 using Domain.Entities;
-using System;
+using System.Text.Json.Serialization;
 
 namespace Domain.Commands.UpdateOrdemDeServico
 {
-    public class UpdateOrdemDeServicoCommand(
-        string id,
-        string clienteId,
-        string veiculoId,
-        string descricaoProblema,
-        IEnumerable<Servico> servicos,
-        OSStatusEnum status,
-        decimal valorTotal,
-        decimal valorPago,
-        DateTime dataAbertura,
-        DateTime? dataFechamento
-    ) : IRequest<UpdateOrdemDeServicoCommandResponse>
+    public class UpdateOrdemDeServicoCommand : IRequest<UpdateOrdemDeServicoCommandResponse>
     {
-        public string Id { get; } = id;
-        public string ClienteId { get; } = clienteId;
-        public string VeiculoId { get; } = veiculoId;
-        public string DescricaoProblema { get; } = descricaoProblema;
-        public IEnumerable<Servico> Servicos { get; } = servicos;
-        public OSStatusEnum Status { get; } = status;
-        public decimal ValorTotal { get; } = valorTotal;
-        public decimal ValorPago { get; } = valorPago;
-        public DateTime DataAbertura { get; } = dataAbertura;
-        public DateTime? DataFechamento { get; } = dataFechamento;
+        [JsonIgnore]
+        public string Id { get;  set; }
+        public string ClienteId { get; set; }
+        public string VeiculoId { get; set; }
+        public string DescricaoProblema { get; set; }
+        public IEnumerable<Servico> Servicos { get; set; }
+        public OSStatusEnum Status { get; set; }
+        public decimal ValorTotal { get; set; }
+        public decimal ValorPago { get; set; }
+        public DateTime DataAbertura { get; set; }
+        public DateTime? DataFechamento { get; set; }
     }
 }
