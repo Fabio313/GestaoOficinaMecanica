@@ -8,7 +8,7 @@ namespace API.Infraestructure
     {
         private static readonly string _clienteCollection = "clientes";
         private static readonly string _veiculoCollection = "veiculos";
-        private static readonly string _OSCollection = "OrdensServico";
+        private static readonly string _OSCollection = "ordensServico";
 
         public static void Inject(WebApplicationBuilder builder)
         {

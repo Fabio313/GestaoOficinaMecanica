@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace API.Controllers
 {
     [ApiController]
-    [Route("api/ordensdeservico")]
+    [Route("api/ordensservico")]
     public class OrdemDeServicoController(IMediator mediator) : ControllerBase
     {
         private readonly IMediator _mediator = mediator;
