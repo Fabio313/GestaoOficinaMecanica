@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import type { Veiculo } from "../types/Veiculo";
-import type { Cliente } from "../types/Cliente";
-import { getVeiculos } from "../api/veiculoApi";
-import { getClientes } from "../api/clientApi";
+import type { Veiculo } from "../../types/Veiculo";
+import type { Cliente } from "../../types/Cliente";
+import { getVeiculos } from "../../api/veiculoApi";
+import { getClientes } from "../../api/clientApi";
+import styles from "./VeiculoList.module.css";
 
 export default function VeiculoList() {
   const [veiculos, setVeiculos] = useState<Veiculo[]>([]);
@@ -48,17 +49,17 @@ export default function VeiculoList() {
   );
 
   return (
-    <div>
+    <div className={styles.listContainer}>
       <input
         type="text"
         placeholder="Filtrar veículos"
         value={filtro}
         onChange={e => setFiltro(e.target.value)}
-        className="border p-1 mb-2 w-full"
+        className={styles.input}
       />
-      <ul className="border p-2">
+      <ul className={styles.ul}>
         {veiculosFiltrados.map(veiculo => (
-          <li key={veiculo.id} className="mb-2">
+          <li key={veiculo.id} className={styles.li}>
             <strong>{veiculo.placa}</strong> - {veiculo.modelo} - {veiculo.ano} (Cliente: {getNomeCliente(veiculo.clienteId)})
           </li>
         ))}

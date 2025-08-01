@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { criarVeiculo } from "../api/veiculoApi";
-import { getClientes } from "../api/clientApi";
-import type { Cliente } from "../types/Cliente";
+import { criarVeiculo } from "../../api/veiculoApi";
+import { getClientes } from "../../api/clientApi";
+import type { Cliente } from "../../types/Cliente";
+import styles from "./VeiculoForm.module.css";
 
 type VeiculoFormProps = {
   onVeiculoCriado?: () => void;
@@ -41,20 +42,24 @@ export default function VeiculoForm({ onVeiculoCriado }: VeiculoFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mb-4 flex gap-2 flex-wrap">
+    <form onSubmit={handleSubmit} className={styles.formContainer}>
       <div>
+        <label htmlFor="filtro" className={styles.label}>Filtrar cliente</label>
         <input
+          id="filtro"
           type="text"
           placeholder="Filtrar cliente"
           value={filtro}
           onChange={e => setFiltro(e.target.value)}
-          className="border p-1 mb-1"
+          className={styles.input}
         />
+        <label htmlFor="cliente" className={styles.label}>Cliente</label>
         <select
+          id="cliente"
           value={clienteId}
           onChange={e => setClienteId(e.target.value)}
           required
-          className="border p-1"
+          className={styles.input}
         >
           <option value="">Selecione o cliente</option>
           {clientesFiltrados.map(cliente => (
@@ -64,33 +69,45 @@ export default function VeiculoForm({ onVeiculoCriado }: VeiculoFormProps) {
           ))}
         </select>
       </div>
-      <input
-        type="text"
-        placeholder="Placa"
-        value={placa}
-        onChange={e => setPlaca(e.target.value)}
-        required
-        className="border p-1"
-      />
-      <input
-        type="text"
-        placeholder="Modelo"
-        value={modelo}
-        onChange={e => setModelo(e.target.value)}
-        required
-        className="border p-1"
-      />
-      <input
-        type="number"
-        placeholder="Ano"
-        value={ano}
-        onChange={e => setAno(e.target.value === "" ? "" : Number(e.target.value))}
-        required
-        className="border p-1"
-      />
+      <div>
+        <label htmlFor="placa" className={styles.label}>Placa</label>
+        <input
+          id="placa"
+          type="text"
+          placeholder="Placa"
+          value={placa}
+          onChange={e => setPlaca(e.target.value)}
+          required
+          className={styles.input}
+        />
+      </div>
+      <div>
+        <label htmlFor="modelo" className={styles.label}>Modelo</label>
+        <input
+          id="modelo"
+          type="text"
+          placeholder="Modelo"
+          value={modelo}
+          onChange={e => setModelo(e.target.value)}
+          required
+          className={styles.input}
+        />
+      </div>
+      <div>
+        <label htmlFor="ano" className={styles.label}>Ano</label>
+        <input
+          id="ano"
+          type="number"
+          placeholder="Ano"
+          value={ano}
+          onChange={e => setAno(e.target.value === "" ? "" : Number(e.target.value))}
+          required
+          className={styles.input}
+        />
+      </div>
       <button
         type="submit"
-        className="bg-blue-500 text-white px-2 rounded"
+        className={styles.button}
         disabled={loading}
       >
         {loading ? "Adicionando..." : "Adicionar"}

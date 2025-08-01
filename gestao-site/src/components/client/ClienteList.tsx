@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import type { Cliente } from "../types/Cliente";
-import { getClientes } from "../api/clientApi";
+import type { Cliente } from "../../types/Cliente";
+import { getClientes } from "../../api/clientApi";
+import styles from "./ClienteList.module.css";
 
 export default function ClienteList() {
   const [clientes, setClientes] = useState<Cliente[]>([]);
@@ -31,17 +32,17 @@ export default function ClienteList() {
   );
 
   return (
-    <div>
+    <div className={styles.listContainer}>
       <input
         type="text"
         placeholder="Filtrar clientes"
         value={filtro}
         onChange={e => setFiltro(e.target.value)}
-        className="border p-1 mb-2 w-full"
+        className={styles.input}
       />
-      <ul className="border p-2">
+      <ul className={styles.ul}>
         {clientesFiltrados.map(cliente => (
-          <li key={cliente.id} className="mb-2">
+          <li key={cliente.id} className={styles.li}>
             <strong>{cliente.nome}</strong> - {cliente.telefone}
           </li>
         ))}
