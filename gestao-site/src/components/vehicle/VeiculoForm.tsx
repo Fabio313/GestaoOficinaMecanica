@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
-import { criarVeiculo } from "../../api/veiculoApi";
+import { criarVeiculo, atualizarVeiculo } from "../../api/veiculoApi";
 import { getClientes } from "../../api/clientApi";
 import type { Cliente } from "../../types/Cliente";
+import type { Veiculo } from "../../types/Veiculo";
 import styles from "./VeiculoForm.module.css";
 
 type VeiculoFormProps = {
-  onVeiculoCriado?: () => void;
+  veiculoParaEditar?: Veiculo | null;
+  onSuccess: () => void;
+  onClose?: () => void;
 };
 
-export default function VeiculoForm({ onVeiculoCriado }: VeiculoFormProps) {
+export default function VeiculoForm({ veiculoParaEditar, onSuccess, onClose }: VeiculoFormProps) {
   const [clienteId, setClienteId] = useState("");
   const [placa, setPlaca] = useState("");
   const [modelo, setModelo] = useState("");
@@ -22,6 +25,20 @@ export default function VeiculoForm({ onVeiculoCriado }: VeiculoFormProps) {
     getClientes().then(setClientes);
   }, []);
 
+  useEffect(() => {
+    if (veiculoParaEditar) {
+      setClienteId(veiculoParaEditar.clienteId);
+      setPlaca(veiculoParaEditar.placa);
+      setModelo(veiculoParaEditar.modelo);
+      setAno(veiculoParaEditar.ano);
+    } else {
+      setClienteId("");
+      setPlaca("");
+      setModelo("");
+      setAno("");
+    }
+  }, [veiculoParaEditar]);
+
   const clientesFiltrados = clientes.filter(c =>
     c.nome.toLowerCase().includes(filtro.toLowerCase())
   );
@@ -30,16 +47,32 @@ export default function VeiculoForm({ onVeiculoCriado }: VeiculoFormProps) {
     e.preventDefault();
     setLoading(true);
     try {
-      await criarVeiculo({ clienteId, placa, modelo, ano: Number(ano) });
-      setClienteId("");
-      setPlaca("");
-      setModelo("");
-      setAno("");
-      if (onVeiculoCriado) onVeiculoCriado();
+      if (veiculoParaEditar) {
+        await atualizarVeiculo({
+          id: veiculoParaEditar.id,
+          clienteId,
+          placa,
+          modelo,
+          ano: Number(ano),
+        });
+      } else {
+        await criarVeiculo({ clienteId, placa, modelo, ano: Number(ano) });
+      }
+      onSuccess();
+      if (onClose) onClose();
     } finally {
       setLoading(false);
     }
   }
+
+  const isEditing = !!veiculoParaEditar;
+  const isFormValid = clienteId !== "" && placa.trim() !== "" && modelo.trim() !== "" && ano !== "" && Number(ano) > 0;
+  
+  const isFormUnchanged = isEditing &&
+    clienteId === veiculoParaEditar?.clienteId &&
+    placa === veiculoParaEditar?.placa &&
+    modelo === veiculoParaEditar?.modelo &&
+    Number(ano) === veiculoParaEditar?.ano;
 
   return (
     <form onSubmit={handleSubmit} className={styles.formContainer}>
@@ -105,13 +138,24 @@ export default function VeiculoForm({ onVeiculoCriado }: VeiculoFormProps) {
           className={styles.input}
         />
       </div>
-      <button
-        type="submit"
-        className={styles.button}
-        disabled={loading}
-      >
-        {loading ? "Adicionando..." : "Adicionar"}
-      </button>
+      <div className={styles.buttonRow}>
+        {onClose && (
+          <button
+            type="button"
+            className={`${styles.button} ${styles.cancel}`}
+            onClick={onClose}
+          >
+            Cancelar
+          </button>
+        )}
+        <button
+          type="submit"
+          className={styles.button}
+          disabled={loading || !isFormValid || isFormUnchanged}
+        >
+          {loading ? "Salvando..." : (isEditing ? "Salvar Alterações" : "Adicionar")}
+        </button>
+      </div>
     </form>
   );
 }

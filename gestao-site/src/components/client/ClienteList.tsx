@@ -3,7 +3,11 @@ import type { Cliente } from "../../types/Cliente";
 import { getClientes } from "../../api/clientApi";
 import styles from "./ClienteList.module.css";
 
-export default function ClienteList() {
+type ClienteListProps = {
+  onEdit: (cliente: Cliente) => void;
+};
+
+export default function ClienteList({ onEdit }: ClienteListProps) {
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtro, setFiltro] = useState("");
@@ -43,7 +47,12 @@ export default function ClienteList() {
       <ul className={styles.ul}>
         {clientesFiltrados.map(cliente => (
           <li key={cliente.id} className={styles.li}>
-            <strong>{cliente.nome}</strong> - {cliente.telefone}
+            <div className={styles.liContent}>
+              <strong>{cliente.nome}</strong> - {cliente.telefone}
+            </div>
+            <button className={styles.editButton} onClick={() => onEdit(cliente)}>
+              Editar
+            </button>
           </li>
         ))}
       </ul>

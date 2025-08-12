@@ -1,28 +1,48 @@
-import { useState } from "react";
-import { criarCliente } from "../../api/clientApi";
+import { useState, useEffect } from "react";
+import type { Cliente } from "../../types/Cliente";
+import { criarCliente, atualizarCliente } from "../../api/clientApi";
 import styles from "./ClienteForm.module.css";
 
 type ClienteFormProps = {
-  onClienteCriado?: () => void;
+  clienteParaEditar?: Cliente | null;
+  onSuccess: () => void;
+  onClose?: () => void;
 };
 
-export default function ClienteForm({ onClienteCriado }: ClienteFormProps) {
+export default function ClienteForm({ clienteParaEditar, onSuccess, onClose }: ClienteFormProps) {
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (clienteParaEditar) {
+      setNome(clienteParaEditar.nome);
+      setTelefone(clienteParaEditar.telefone);
+    } else {
+      setNome("");
+      setTelefone("");
+    }
+  }, [clienteParaEditar]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     try {
-      await criarCliente({ nome, telefone });
-      setNome("");
-      setTelefone("");
-      if (onClienteCriado) onClienteCriado();
+      if (clienteParaEditar) {
+        await atualizarCliente({ ...clienteParaEditar, nome, telefone });
+      } else {
+        await criarCliente({ nome, telefone });
+      }
+      onSuccess();
+      if (onClose) onClose();
     } finally {
       setLoading(false);
     }
   }
+
+  const isEditing = !!clienteParaEditar;
+  const isFormValid = nome.trim() !== "" && telefone.trim() !== "";
+  const isFormUnchanged = isEditing && nome === clienteParaEditar?.nome && telefone === clienteParaEditar?.telefone;
 
   return (
     <form onSubmit={handleSubmit} className={styles.formContainer}>
@@ -50,13 +70,24 @@ export default function ClienteForm({ onClienteCriado }: ClienteFormProps) {
           className={styles.input}
         />
       </div>
-      <button
-        type="submit"
-        className={styles.button}
-        disabled={loading}
-      >
-        {loading ? "Adicionando..." : "Adicionar"}
-      </button>
+      <div className={styles.buttonRow}>
+        {onClose && (
+          <button
+            type="button"
+            className={`${styles.button} ${styles.cancel}`}
+            onClick={onClose}
+          >
+            Cancelar
+          </button>
+        )}
+        <button
+          type="submit"
+          className={styles.button}
+          disabled={loading || !isFormValid || isFormUnchanged}
+        >
+          {loading ? "Salvando..." : (isEditing ? "Salvar Alterações" : "Adicionar")}
+        </button>
+      </div>
     </form>
   );
 }

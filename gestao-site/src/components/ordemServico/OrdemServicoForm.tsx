@@ -1,29 +1,39 @@
 import { useEffect, useState } from "react";
-import { criarOrdemServico } from "../../api/ordemServicoApi";
+import {
+  criarOrdemServico,
+  atualizarOrdemServico,
+} from "../../api/ordemServicoApi";
 import { getVeiculos } from "../../api/veiculoApi";
 import type { Veiculo } from "../../types/Veiculo";
-import { StatusOrdemServico } from "../../types/OrdemServico";
+import {
+  StatusOrdemServico,
+  type OrdemServico,
+} from "../../types/OrdemServico";
 import type { Servico } from "../../types/Servico";
 import styles from "./OrdemServicoForm.module.css";
 import ServicoModal from "./ServicoModal";
 
 type OrdemServicoFormProps = {
-  onOrdemCriada?: () => void;
+  osParaEditar?: OrdemServico | null;
+  onSuccess: () => void;
+  onClose?: () => void;
 };
 
 export default function OrdemServicoForm({
-  onOrdemCriada,
+  osParaEditar,
+  onSuccess,
+  onClose,
 }: OrdemServicoFormProps) {
   const [veiculos, setVeiculos] = useState<Veiculo[]>([]);
-  const [filtro, setFiltro] = useState("");
   const [veiculoId, setVeiculoId] = useState("");
   const [descricaoProblema, setDescricaoProblema] = useState("");
   const [status, setStatus] =
     useState<keyof typeof StatusOrdemServico>("Aberto");
-  const [loading, setLoading] = useState(false);
   const [servicosSelecionados, setServicosSelecionados] = useState<Servico[]>(
     []
   );
+  const [loading, setLoading] = useState(false);
+
   const [showModal, setShowModal] = useState(false);
   const [novoServico, setNovoServico] = useState<Servico>({
     nome: "",
@@ -33,39 +43,65 @@ export default function OrdemServicoForm({
   });
 
   useEffect(() => {
-    getVeiculos().then(setVeiculos);
-  }, []);
+    async function carregarVeiculos() {
+      const data = await getVeiculos();
+      setVeiculos(data);
+    }
+    carregarVeiculos();
 
-  const veiculosFiltrados = veiculos.filter(
-    (v) =>
-      v.placa.toLowerCase().includes(filtro.toLowerCase()) ||
-      v.modelo.toLowerCase().includes(filtro.toLowerCase())
-  );
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const veiculo = veiculos.find((v) => v.id === veiculoId);
-      if (!veiculo) return;
-      await criarOrdemServico({
-        clienteId: veiculo.clienteId,
-        veiculoId: veiculo.id!,
-        descricaoProblema,
-        servicos: servicosSelecionados,
-        status: StatusOrdemServico[status],
-        valorTotal: servicosSelecionados.reduce(
-          (acc, s) => acc + s.preco * s.quantidade,
-          0
-        ),
-        valorPago: 0,
-        dataAbertura: new Date(),
-      });
+    if (osParaEditar) {
+      setVeiculoId(osParaEditar.veiculoId);
+      setDescricaoProblema(osParaEditar.descricaoProblema);
+      const statusKey = Object.keys(StatusOrdemServico).find(
+        (key) =>
+          StatusOrdemServico[key as keyof typeof StatusOrdemServico] ===
+          osParaEditar.status
+      );
+      if (statusKey) setStatus(statusKey as keyof typeof StatusOrdemServico);
+      setServicosSelecionados(osParaEditar.servicos);
+    } else {
       setVeiculoId("");
       setDescricaoProblema("");
       setStatus("Aberto");
       setServicosSelecionados([]);
-      if (onOrdemCriada) onOrdemCriada();
+    }
+  }, [osParaEditar]);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+
+    if (!veiculoId || !descricaoProblema) {
+      alert("Por favor, preencha todos os campos obrigatórios.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const os = {
+        clienteId: veiculoId
+          ? veiculos.find((v) => v.id === veiculoId)?.clienteId || ""
+          : "",
+        veiculoId,
+        descricaoProblema,
+        servicos: servicosSelecionados,
+        status: StatusOrdemServico[status],
+        valorTotal: servicosSelecionados.reduce(
+          (total, s) => total + s.preco * s.quantidade,
+          0
+        ),
+        dataAbertura: osParaEditar?.dataAbertura || new Date(),
+        valorPago: osParaEditar?.valorPago || 0,
+      };
+
+      if (osParaEditar) {
+        await atualizarOrdemServico({ ...osParaEditar, ...os });
+      } else {
+        await criarOrdemServico(os);
+      }
+
+      onSuccess();
+      if (onClose) onClose();
     } finally {
       setLoading(false);
     }
@@ -73,41 +109,49 @@ export default function OrdemServicoForm({
 
   function handleAddServico() {
     setServicosSelecionados([...servicosSelecionados, novoServico]);
-    setNovoServico({ nome: "", descricao: "", preco: 0, quantidade: 1 });
+    setNovoServico({
+      nome: "",
+      descricao: "",
+      preco: 0,
+      quantidade: 1,
+    });
     setShowModal(false);
   }
-
   function handleRemoveServico(idx: number) {
     setServicosSelecionados(servicosSelecionados.filter((_, i) => i !== idx));
   }
 
+  const isEditing = !!osParaEditar;
+
   return (
     <form onSubmit={handleSubmit} className={styles.formContainer}>
       <div>
-        <input
-          type="text"
-          placeholder="Filtrar veículo (placa/modelo)"
-          value={filtro}
-          onChange={(e) => setFiltro(e.target.value)}
-          className={styles.input}
-        />
+        <label htmlFor="veiculoId" className={styles.label}>
+          Veículo
+        </label>
         <select
+          id="veiculoId"
           value={veiculoId}
           onChange={(e) => setVeiculoId(e.target.value)}
-          required
           className={styles.select}
+          required
         >
-          <option value="">Selecione o veículo</option>
-          {veiculosFiltrados.map((v) => (
+          <option value="">Selecione um veículo</option>
+          {veiculos.map((v) => (
             <option key={v.id} value={v.id}>
               {v.placa} - {v.modelo}
             </option>
           ))}
         </select>
       </div>
+
       <div>
+        <label htmlFor="descricaoProblema" className={styles.label}>
+          Descrição do Problema
+        </label>
         <textarea
-          placeholder="Descrição do problema"
+          id="descricaoProblema"
+          placeholder="Descreva o problema do veículo"
           value={descricaoProblema}
           onChange={(e) => setDescricaoProblema(e.target.value)}
           required
@@ -115,30 +159,18 @@ export default function OrdemServicoForm({
         />
       </div>
 
-      <div>
-        <button
-          type="button"
-          className={styles.button}
-          onClick={() => setShowModal(true)}
-        >
+      <div className={styles.servicosContainer}>
+        <h3>Serviços Adicionados</h3>
+        <button type="button" onClick={() => setShowModal(true)}>
           Adicionar Serviço
         </button>
         <ul>
           {servicosSelecionados.map((servico, idx) => (
-            <li key={idx} style={{ marginBottom: "8px" }}>
-              <strong>{servico.nome}</strong> - {servico.descricao} | Qtd:{" "}
-              {servico.quantidade} | R$ {servico.preco}
-              <button
-                type="button"
-                style={{
-                  marginLeft: "8px",
-                  color: "#d90429",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                }}
-                onClick={() => handleRemoveServico(idx)}
-              >
+            <li key={idx}>
+              <strong>{servico.nome}</strong> | R$ {servico.preco} x{" "}
+              {servico.quantidade} <br />
+              <span>{servico.descricao}</span>
+              <button type="button" onClick={() => handleRemoveServico(idx)}>
                 Remover
               </button>
             </li>
@@ -146,21 +178,44 @@ export default function OrdemServicoForm({
         </ul>
       </div>
 
-      <select
-        value={status}
-        onChange={(e) =>
-          setStatus(e.target.value as keyof typeof StatusOrdemServico)
-        }
-        className={styles.select}
-      >
-        <option value="Aberto">Aberto</option>
-        <option value="EmAndamento">Em Andamento</option>
-        <option value="Concluido">Concluído</option>
-        <option value="Cancelado">Cancelado</option>
-      </select>
-      <button type="submit" className={styles.button} disabled={loading}>
-        {loading ? "Adicionando..." : "Adicionar"}
-      </button>
+      <div>
+        <label htmlFor="status" className={styles.label}>
+          Status
+        </label>
+        <select
+          id="status"
+          value={status}
+          onChange={(e) =>
+            setStatus(e.target.value as keyof typeof StatusOrdemServico)
+          }
+          className={styles.select}
+        >
+          {Object.keys(StatusOrdemServico).map((key) => (
+            <option key={key} value={key}>
+              {key}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className={styles.buttonRow}>
+        {onClose && (
+          <button
+            type="button"
+            className={`${styles.button} ${styles.cancel}`}
+            onClick={onClose}
+          >
+            Cancelar
+          </button>
+        )}
+        <button type="submit" className={styles.button} disabled={loading}>
+          {loading
+            ? "Salvando..."
+            : isEditing
+            ? "Salvar Alterações"
+            : "Adicionar"}
+        </button>
+      </div>
 
       <ServicoModal
         open={showModal}

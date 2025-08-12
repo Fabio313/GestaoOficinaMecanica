@@ -10,7 +10,11 @@ import type { Veiculo } from "../../types/Veiculo";
 import type { Cliente } from "../../types/Cliente";
 import styles from "./OrdemServicoList.module.css";
 
-export default function OrdemServicoList() {
+type OrdemServicoListProps = {
+  onEdit: (os: OrdemServico) => void;
+};
+
+export default function OrdemServicoList({ onEdit }: OrdemServicoListProps) {
   const [ordens, setOrdens] = useState<OrdemServico[]>([]);
   const [veiculos, setVeiculos] = useState<Veiculo[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
@@ -37,16 +41,14 @@ export default function OrdemServicoList() {
     carregarDados();
   }, []);
 
-  function getVeiculoInfo(veiculoId: string) {
-    const veiculo = veiculos.find((v) => v.id === veiculoId);
-    if (!veiculo) return "Desconhecido";
-    const cliente = clientes.find((c) => c.id === veiculo.clienteId);
-    return `${veiculo.placa} - ${veiculo.modelo} (${
-      cliente ? cliente.nome : "Cliente desconhecido"
-    })`;
-  }
-
   if (loading) return <div>Carregando ordens de serviço...</div>;
+
+  const getVeiculoInfo = (veiculoId: string) => {
+    const veiculo = veiculos.find((v) => v.id === veiculoId);
+    if (!veiculo) return "N/A";
+    const cliente = clientes.find((c) => c.id === veiculo.clienteId);
+    return `${veiculo.placa} (${veiculo.modelo}) - ${cliente?.nome || "N/A"}`;
+  };
 
   const ordensFiltradas = ordens.filter((ordem) => {
     const veiculo = veiculos.find((v) => v.id === ordem.veiculoId);
@@ -55,7 +57,7 @@ export default function OrdemServicoList() {
       : undefined;
     const texto = [
       ordem.descricaoProblema,
-      ordem.status,
+      statusOrdemToString(ordem.status),
       veiculo?.placa,
       veiculo?.modelo,
       cliente?.nome,
@@ -78,18 +80,24 @@ export default function OrdemServicoList() {
       <ul className={styles.ul}>
         {ordensFiltradas.map((ordem) => (
           <li key={ordem.id} className={styles.li}>
-            <strong>Veículo:</strong> {getVeiculoInfo(ordem.veiculoId)}
-            <br />
-            <strong>Problema:</strong> {ordem.descricaoProblema}
-            <br />
-            <strong>Status:</strong> {statusOrdemToString(ordem.status)}
-            <br />
-            <strong>Valor Total:</strong> R$ {ordem.valorTotal}
-            <br />
-            <strong>Valor Pago:</strong> R$ {ordem.valorPago}
-            <br />
-            <strong>Data Abertura:</strong>{" "}
-            {new Date(ordem.dataAbertura).toLocaleDateString()}
+            <div>
+              <strong>Veículo:</strong> {getVeiculoInfo(ordem.veiculoId)}
+              <br />
+              <strong>Problema:</strong> {ordem.descricaoProblema}
+              <br />
+              <strong>Status:</strong> {statusOrdemToString(ordem.status)}
+              <br />
+              <strong>Valor Total:</strong> R$ {ordem.valorTotal.toFixed(2)}
+              <br />
+              <strong>Valor Pago:</strong> R$ {ordem.valorPago.toFixed(2)}
+            </div>
+            <button
+              type="button"
+              className={styles.editButton}
+              onClick={() => onEdit(ordem)}
+            >
+              Editar
+            </button>
           </li>
         ))}
       </ul>

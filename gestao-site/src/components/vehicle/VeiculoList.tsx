@@ -5,7 +5,11 @@ import { getVeiculos } from "../../api/veiculoApi";
 import { getClientes } from "../../api/clientApi";
 import styles from "./VeiculoList.module.css";
 
-export default function VeiculoList() {
+type VeiculoListProps = {
+  onEdit: (veiculo: Veiculo) => void;
+};
+
+export default function VeiculoList({ onEdit }: VeiculoListProps) {
   const [veiculos, setVeiculos] = useState<Veiculo[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,7 +64,12 @@ export default function VeiculoList() {
       <ul className={styles.ul}>
         {veiculosFiltrados.map(veiculo => (
           <li key={veiculo.id} className={styles.li}>
-            <strong>{veiculo.placa}</strong> - {veiculo.modelo} - {veiculo.ano} (Cliente: {getNomeCliente(veiculo.clienteId)})
+            <div className={styles.liContent}>
+              <strong>{veiculo.placa}</strong> - {veiculo.modelo} - {veiculo.ano} (Cliente: {getNomeCliente(veiculo.clienteId)})
+            </div>
+            <button className={styles.editButton} onClick={() => onEdit(veiculo)}>
+              Editar
+            </button>
           </li>
         ))}
       </ul>

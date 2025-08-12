@@ -9,4 +9,8 @@ export async function getClientes(): Promise<Cliente[]> {
 export async function criarCliente(cliente: Cliente) {
   return http.post("/clientes", cliente);
 }
+
+export async function atualizarCliente(cliente: Cliente) {
+  return http.put(`/clientes/${cliente.id}`, cliente);
+}
     

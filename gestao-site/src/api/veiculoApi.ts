@@ -9,3 +9,7 @@ export async function getVeiculos(): Promise<Veiculo[]> {
 export async function criarVeiculo(veiculo: Veiculo) {
   return http.post("/veiculos", veiculo);
 }
+
+export async function atualizarVeiculo(veiculo: Veiculo) {
+  return http.put(`/veiculos/${veiculo.id}`, veiculo);
+}

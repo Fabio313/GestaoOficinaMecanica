@@ -40,3 +40,15 @@
   color: #333;
   margin-bottom: 0.25rem;
 }
+
+.buttonRow {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.button.cancel {
+  background: #ccc;
+  color: #333;
+}
