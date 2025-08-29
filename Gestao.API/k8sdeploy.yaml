@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: default
+  name: gestao-mecanica-api-dep
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gestao-mecanica-api
+  template:
+    metadata:
+      labels:
+        app: gestao-mecanica-api
+    spec:
+      containers:
+        - name: gestao-mecanica-api
+          image: "teste/api/v2"
+          imagePullPolicy: Never
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gestao-mecanica-api-svc
+spec:
+  selector:
+    app: gestao-mecanica-api
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP

@@ -1,0 +1,33 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gestao-mecanica-ingress
+  namespace: default
+  annotations:
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "http://gestao.mecanica"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "*"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "*"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: gestao.mecanica
+      http:
+        paths:
+          # API
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: gestao-mecanica-api-svc
+                port:
+                  number: 80
+          # Frontend
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend-svc
+                port:
+                  number: 80
